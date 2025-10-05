@@ -1,0 +1,25 @@
+[project]
+name = "langgraphtest"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "aiohttp>=3.12.15",
+    "langchain>=0.3.27",
+    "langchain-core>=0.3.76",
+    "langchain-deepseek>=0.1.0",
+    "langchain-mcp-adapters>=0.1.10",
+    "langgraph>=0.6.7",
+    "langgraph-cli[inmem]>=0.4.0",
+    "mcp>=1.15.0",
+    "tavily-python>=0.7.12",
+]
+
+[tool.setuptools]
+# 明确指定包的位置
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+# 在 src/ 目录下查找包
+where = ["src"]

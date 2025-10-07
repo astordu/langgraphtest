@@ -1,4 +1,5 @@
 from typing import Annotated
+from langchain_core.messages import HumanMessage
 from typing_extensions import TypedDict
 
 from langgraph.graph import StateGraph, START, END
@@ -7,11 +8,13 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from agent.utils import tavily_search,think_tool
 from langchain.chat_models import init_chat_model
 from agent.prompts import researcher_system_prompt
+from agent.prompts import summarize_webpage_prompt
 
 
 class State(TypedDict):
     messages: Annotated[list, add_messages]
-    summary: str
+    summary: str = "",
+    search_data: str = "",
 
 
 llm = init_chat_model("deepseek:deepseek-chat")
@@ -27,8 +30,11 @@ def search_node(state: State):
     return {"messages": [response]}
 
 def compase_node(state: State):
-    print(state)
-    return {"summary":"这是summary内容"}
+    
+    summary_llm = init_chat_model("deepseek:deepseek-chat")
+    summary = summary_llm.invoke([HumanMessage(content=summarize_webpage_prompt.format(webpage_content=state["search_data"]))])
+
+    return {"summary":summary}
 
 graph_builder = StateGraph(State)
 
@@ -48,3 +54,11 @@ graph_builder.add_edge("compase_node", END)
 graph_builder.add_edge(START, "search_node")
 graph = graph_builder.compile()
 
+
+"""
+{
+  "messages": [
+    {"role": "user", "content": "谁赢得了2020年的世界职业棒球大赛?"}
+  ]
+}
+"""

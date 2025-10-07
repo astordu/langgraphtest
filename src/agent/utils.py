@@ -3,10 +3,13 @@
 import os
 import asyncio
 from typing import Literal
+from langchain_core.messages import ToolMessage
 from langchain_core.tools import (
-    tool,
+    tool,InjectedToolCallId
 )
+from langgraph.types import Command
 from tavily import AsyncTavilyClient
+from typing import Annotated
 
 ##########################
 # Tavily Search Tool Utils
@@ -16,7 +19,8 @@ def tavily_search(
     search_queries: list[str], 
     max_results: int = 5, 
     topic: Literal["general", "news", "finance"] = "general", 
-    include_raw_content: bool = True
+    include_raw_content: bool = True,
+    tool_call_id: Annotated[str, InjectedToolCallId] = None,
 ):
     """
     一个搜索引擎，用于收集与用户输入主题相关的信息。
@@ -56,7 +60,13 @@ def tavily_search(
         for result in result_set.get('results', []):
             format_msg_res += "标题:" + result['title'] + "\n" + "内容:" + result['content'] + "\n\n"
     
-    return format_msg_res
+    state_update = {
+        "search_data": format_msg_res,
+        "messages": [ToolMessage(format_msg_res, tool_call_id=tool_call_id)],
+    }
+    # We return a Command object in the tool to update our state.
+    return Command(update=state_update)
+
     
 
     
